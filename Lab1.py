@@ -83,6 +83,16 @@ def intervals_for_M(n, D_estimate, M_estimate):
     return intervals
 
 
+def intervals_for_D(n, d):
+    arr = stats.chi2(n - 1).rvs(1000000)
+    probations = [[0.025, 0.975], [0.01, 0.99], [0.005, 0.995]]
+    deltas = [stats.mstats.mquantiles(arr, prob=probation) for probation in probations]
+    intervals = [[d - (n - 1) * d / delta[1], d + (n - 1) * d / delta[0]] for delta in deltas]
+    for probation, interval in zip(probations, intervals):
+        print('Доверительный интервал для дисперсии при доверительной вероятности {}: ( {}, {} )'.format(probation[1], interval[0], interval[1]))
+    return intervals
+
+
 if __name__ == '__main__':
     P = np.array([[0.2, 0.3],
                   [0.1, 0.2],
@@ -111,5 +121,8 @@ if __name__ == '__main__':
     intervals_for_M(n, pe_d_x1, pe_m_x2)
 
     print('\nточечная оценка дисперсии для x1:', pe_d_x1)
-    print('точечная оценка дисперсии для x2:', pe_d_x2)
+    intervals_for_D(n, pe_d_x1)
+    print('\nточечная оценка дисперсии для x2:', pe_d_x2)
+    intervals_for_D(n, pe_d_x2)
+
 
