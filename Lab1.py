@@ -93,20 +93,32 @@ def intervals_for_D(n, d):
     return intervals
 
 
+def find_correlation(A, B, E_m, M_x1, M_x2, D_x1, D_x2):
+    M_x1_x2 = 0
+    m, n = E_m.shape
+    for i in range(m):
+        for j in range(n):
+            M_x1_x2 += A[i] * B[j] * E_m[i, j]
+
+    return (M_x1_x2 - M_x1 * M_x2) / math.sqrt(D_x1) * math.sqrt(D_x2)
+
+
 if __name__ == '__main__':
     P = np.array([[0.2, 0.3],
                   [0.1, 0.2],
                   [0.1, 0.1]])
-    A = np.array([1, 2, 4])
-    B = np.array([1, 3])
+    A = np.array([1, 2, 3])
+    B = np.array([1, 5])
     n = 100
 
     print('Теоретическая матрица P:\n', P)
 
-    empiric_matrix = find_empiric_matrix(P, A, B, n)
-    print('Эмпирическая матрица при кол-ве эксперементов = {}\n'.format(n), empiric_matrix)
+    E_m = find_empiric_matrix(P, A, B, n)
+    print('\nЭмпирическая матрица при кол-ве эксперементов = {}\n'.format(n), E_m)
+
     # draw_histogram(A, B, empiric_matrix)
-    pearson_criterion(P, empiric_matrix, n)
+
+    pearson_criterion(P, E_m, n)
 
     x1, x2 = build_x1_x2(P, A, B, n)
     pe_m_x1 = point_estimate_M(x1, n)
@@ -115,14 +127,17 @@ if __name__ == '__main__':
     pe_d_x1 = point_estimate_D(x1, n, pe_m_x1)
     pe_d_x2 = point_estimate_D(x2, n, pe_m_x2)
 
-    print('\nточечная оценка матожидания для x1:', pe_m_x1)
+    print('\nТочечная оценка матожидания для x1:', pe_m_x1)
     intervals_for_M(n, pe_d_x1, pe_m_x1)
-    print('\nточечная оценка матожидания для x2:', pe_m_x2)
+    print('\nТочечная оценка матожидания для x2:', pe_m_x2)
     intervals_for_M(n, pe_d_x1, pe_m_x2)
 
-    print('\nточечная оценка дисперсии для x1:', pe_d_x1)
+    print('\nТочечная оценка дисперсии для x1:', pe_d_x1)
     intervals_for_D(n, pe_d_x1)
-    print('\nточечная оценка дисперсии для x2:', pe_d_x2)
+    print('\nТочечная оценка дисперсии для x2:', pe_d_x2)
     intervals_for_D(n, pe_d_x2)
+
+    corelation = find_correlation(A, B, E_m, pe_m_x1, pe_m_x2, pe_d_x1, pe_d_x2)
+    print('\nКорреляция: {}'.format(corelation))
 
 
