@@ -2,7 +2,7 @@ import numpy as np
 from collections import Counter
 import matplotlib.pyplot as plt
 import scipy.stats as stats
-
+import math
 
 fig, axs = plt.subplots(2)
 
@@ -58,6 +58,21 @@ def pearson_criterion(theoretical_matrix, empiric_matrix, n):
     print('Критерий пирсона {}'.format('пройден успешно' if chi2 < chi2_value else 'провален'))
 
 
+def build_x1_x2(P, A, B):
+    x = [build_dsv(P, A, B) for i in range(n)]
+    x1 = [x[i][0] for i in range(n)]
+    x2 = [x[i][1] for i in range(n)]
+    return x1, x2
+
+
+def point_estimate_m(x, n):
+    return math.fsum(x) / n
+
+
+def point_estimate_d(x, n, pe_m):
+    return 1 / (n - 1) * math.fsum(list(map(lambda xi: (xi - pe_m) ** 2, x)))
+
+
 if __name__ == '__main__':
     P = np.array([[0.1, 0.4],
                   [0.2, 0.1],
@@ -65,13 +80,24 @@ if __name__ == '__main__':
     A = np.array([1, 2, 4])
     B = np.array([1, 3])
     n = 10000
-    print('Матрица вероятности P:\n', P)
+
+    print('Теоретическая матрица P:\n', P)
 
     empiric_matrix = build_empiric_matrix(P, A, B, amount_of_experiments=n)
     print('Эмпирическая матрица при кол-ве эксперементов=10000\n', empiric_matrix)
 
-    draw_histogram(A, B, empiric_matrix)
+    X = [build_dsv(P, A, B) for i in range(n)]
+    # draw_histogram(A, B, empiric_matrix)
 
     pearson_criterion(P, empiric_matrix, n)
 
+    x1, x2 = build_x1_x2(P, A, B)
+    pe_m_x1 = point_estimate_m(x1, n)
+    pe_m_x2 = point_estimate_m(x2, n)
+    print('\nточечная оценка матожидания для x1:', pe_m_x1)
+    print('точечная оценка матожидания для x2:', pe_m_x2)
 
+    pe_d_x1 = point_estimate_d(x1, n, pe_m_x1)
+    pe_d_x2 = point_estimate_d(x2, n, pe_m_x2)
+    print('\nточечная оценка дисперсии для x1:', pe_m_x1)
+    print('точечная оценка дисперсии для x2:', pe_m_x2)
