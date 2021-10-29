@@ -1,6 +1,7 @@
 import numpy as np
 from collections import Counter
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 
 fig, axs = plt.subplots(2)
@@ -43,7 +44,6 @@ def build_empiric_matrix(P, A, B, amount_of_experiments):
 def draw_histogram(A, B, empiric_matrix):
     x1_probability = np.sum(empiric_matrix, axis=1)
     x2_probability = np.sum(empiric_matrix, axis=0)
-
     color = (1, 0.2, 0.2, 1)
     axs[0].bar(A, x1_probability, color=color)
     axs[1].bar(B, x2_probability, color=color)
@@ -52,17 +52,26 @@ def draw_histogram(A, B, empiric_matrix):
     plt.show()
 
 
+def pearson_criterion(theoretical_matrix, empiric_matrix, n):
+    chi2 = n * np.sum((empiric_matrix - theoretical_matrix) ** 2 / theoretical_matrix)
+    chi2_value = stats.chi2.ppf(0.97, theoretical_matrix.size - 1)
+    print('Критерий пирсона {}'.format('пройден успешно' if chi2 < chi2_value else 'провален'))
+
+
 if __name__ == '__main__':
     P = np.array([[0.1, 0.4],
                   [0.2, 0.1],
                   [0.1, 0.1]])
     A = np.array([1, 2, 4])
     B = np.array([1, 3])
-
+    n = 10000
     print('Матрица вероятности P:\n', P)
 
-    empiric_matrix = build_empiric_matrix(P, A, B, amount_of_experiments=10000)
+    empiric_matrix = build_empiric_matrix(P, A, B, amount_of_experiments=n)
     print('Эмпирическая матрица при кол-ве эксперементов=10000\n', empiric_matrix)
 
     draw_histogram(A, B, empiric_matrix)
+
+    pearson_criterion(P, empiric_matrix, n)
+
 
