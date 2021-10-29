@@ -1,5 +1,9 @@
 import numpy as np
 from collections import Counter
+import matplotlib.pyplot as plt
+
+
+fig, axs = plt.subplots(2)
 
 
 def random():
@@ -36,6 +40,18 @@ def build_empiric_matrix(P, A, B, amount_of_experiments):
     return empiric_matrix
 
 
+def draw_histogram(A, B, empiric_matrix):
+    x1_probability = np.sum(empiric_matrix, axis=1)
+    x2_probability = np.sum(empiric_matrix, axis=0)
+
+    color = (1, 0.2, 0.2, 1)
+    axs[0].bar(A, x1_probability, color=color)
+    axs[1].bar(B, x2_probability, color=color)
+    axs[0].legend(['X1'])
+    axs[1].legend(['X2'])
+    plt.show()
+
+
 if __name__ == '__main__':
     P = np.array([[0.1, 0.4],
                   [0.2, 0.1],
@@ -44,6 +60,9 @@ if __name__ == '__main__':
     B = np.array([1, 3])
 
     print('Матрица вероятности P:\n', P)
+
     empiric_matrix = build_empiric_matrix(P, A, B, amount_of_experiments=10000)
     print('Эмпирическая матрица при кол-ве эксперементов=10000\n', empiric_matrix)
+
+    draw_histogram(A, B, empiric_matrix)
 
