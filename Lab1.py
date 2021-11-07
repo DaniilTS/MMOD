@@ -8,10 +8,6 @@ import math
 fig, axs = plt.subplots(2)
 
 
-def random():
-    return np.random.rand()
-
-
 def build_dsv(P, A, B):
     q = np.sum(P, axis=1)  # 0-сумма по столбцам, 1- по строкам
 
@@ -21,14 +17,14 @@ def build_dsv(P, A, B):
     for i in range(1, n + 1):
         l.append(sum(q[0:i]))
 
-    k = np.searchsorted(l, random())
+    k = np.searchsorted(l, np.random.rand())
     x1 = A[k]
 
     rs = np.zeros(m)
     for i in range(1, m + 1):
         rs[i - 1] = rs[i - 2] + P[k, i - 1]
 
-    s = np.searchsorted(rs, random() * rs[-1])
+    s = np.searchsorted(rs, np.random.rand() * rs[-1])
     x2 = B[s]
     return x1, x2
 
@@ -104,7 +100,7 @@ def find_correlation(A, B, E_m, M_x1, M_x2, D_x1, D_x2):
 
 
 if __name__ == '__main__':
-    P = np.array([[0.2, 0.3],
+    P = np.array([[0.1, 0.4],
                   [0.1, 0.2],
                   [0.1, 0.1]])
     A = np.array([1, 2, 3])
@@ -116,14 +112,13 @@ if __name__ == '__main__':
     E_m = find_empiric_matrix(P, A, B, n)
     print('\nЭмпирическая матрица при кол-ве эксперементов = {}\n'.format(n), E_m)
 
-    # draw_histogram(A, B, empiric_matrix)
+    draw_histogram(A, B, E_m)
 
     pearson_criterion(P, E_m, n)
 
     x1, x2 = build_x1_x2(P, A, B, n)
     pe_m_x1 = point_estimate_M(x1, n)
     pe_m_x2 = point_estimate_M(x2, n)
-
     pe_d_x1 = point_estimate_D(x1, n, pe_m_x1)
     pe_d_x2 = point_estimate_D(x2, n, pe_m_x2)
 
