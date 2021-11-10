@@ -52,10 +52,10 @@ def send_application(env, smo):
             if request in res:
                 yield env.process(smo.app_processing())
                 smo.total_wait_times.append(env.now - start_time)
-            else:
-                smo.applications_rejected.append(amount_of_channels + max_queue_length + 1)
-                smo.queue_times.append(0)
-                smo.total_wait_times.append(0)
+        else:
+            smo.applications_rejected.append(amount_of_channels + max_queue_length + 1)
+            smo.queue_times.append(0)
+            smo.total_wait_times.append(0)
 
 
 def run_smo(env, smo):
@@ -149,15 +149,15 @@ def find_theoretical_probabilities(amount_of_channels, max_queue_length, app_flo
 
 if __name__ == '__main__':
     amount_of_channels = 5  # n
-    service_flow_rate = 4  # mu
-    applications_flow_rate = 3  # lambda
+    service_flow_rate = 5  # mu
+    applications_flow_rate = 10  # lambda
     waiting_flow_rate = 1  # v
-    max_queue_length = 2  # m
+    max_queue_length = 1  # m
 
     env = simpy.Environment()
     smo = SMO(env, amount_of_channels, service_flow_rate, applications_flow_rate, waiting_flow_rate, max_queue_length)
     env.process(run_smo(env, smo))
-    env.run(until=1000)
+    env.run(until=3000)
 
     print('Empiric Probabilities')
     find_empiric_probabilities(done_apps=np.array(smo.applications_done),
