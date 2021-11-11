@@ -1,5 +1,3 @@
-import random
-
 import matplotlib.pyplot as plt
 import numpy as np
 import simpy
@@ -92,34 +90,45 @@ def find_empiric_probabilities(done_apps, rejected_apps, queue_times, total_smo_
     get_average_of(queue_times, AvQueueTime)
     get_average_of(total_wait_times, AvSmoTime)
 
-    plt.hist(total_wait_times, 10)
+    plt.hist(total_wait_times, 30)
     axs.set_title('Awaiting time')
 
 
-def find_theoretical_probabilities(max_queue_length, app_flow_rate, service_flow_rate):
-    pass
-    # ro = app_flow_rate / service_flow_rate
-    # p0 = (1 - ro) / (1 - (ro ** (max_queue_length + 2)))
-    # p = [(ro ** i) * p0 for i in range(1, max_queue_length + 1)]
-    # P_rejected = (ro ** (max_queue_length + 1)) * p0
-    # Q = 1 - P_rejected
-    # A = app_flow_rate * Q
-    # L_q = (ro ** 2) * ((1 - (ro ** max_queue_length) * (max_queue_length * (1 - ro) + 1)) / ((1 - ro) ** 2)) * p0
-    # L_pr = p[0] + L_q
-    # av_time_in_smo = L_pr / app_flow_rate
-    # av_time_in_queue = L_q / app_flow_rate
-    #
-    # print('p 0:', p0)
-    # for i, el in enumerate(p):
-    #     print('p', i + 1, ':', el)
-    # print('Empiric probability of rejection: {}'.format(P_rejected))
-    # print('Empiric Q: {}'.format(Q))
-    # print('Empiric A: {}'.format(A))
-    # print(AvQueueL, L_q)
-    # print(AvAmOfApp, L_pr)
-    # print(AvQueueTime, av_time_in_queue)
-    # print(AvSmoTime, av_time_in_smo)
-    # print(AvAmBusyChannels, Q * ro)
+def find_theoretical_probabilities(max_queue_length, lambd, mu1, mu2):
+    lambd_sum = lambd + mu1 + mu2
+    mu2_dot = mu2 * (lambd + mu2)
+
+    first = 1 + (lambd + mu2) * lambd / (mu1 * mu2)
+    second = lambd / mu2
+    third = ((lambd ** 3) * lambd_sum + (lambd ** 2) * mu2_dot) / ((mu1 ** 2) * (mu2 ** 2))
+    fourth = (lambd ** 2) * lambd_sum / (mu1 * (mu2 ** 2))
+    fifth = ((lambd ** 4) * lambd_sum + (lambd ** 3) * mu2_dot) / ((mu1 ** 2) * (mu2 ** 3))
+    sixth = (lambd ** 3) * lambd_sum / (mu1 * (mu2 ** 3))
+    seventh = ((lambd ** 4) * lambd_sum + (lambd ** 3) * mu2_dot) / ((mu1 ** 3) * (mu2 ** 2))
+    p0 = (first + second + third + fourth + fifth + sixth + seventh) ** -1
+
+    lmumu = lambd / (mu1 * mu2)
+    p1 = lmumu * lambd_sum * p0
+    p2 = (lmumu ** 2) * p0 * ((lambd + mu1) * lambd_sum + mu2 * (lambd + mu2))
+    p3 = (lmumu ** 3) * p0 * ((lambd * mu2 + lambd * mu1 + mu1 ** 2) * lambd_sum + mu2 * (mu1 + mu2) * (lambd + mu2))
+
+    Q = 1 - p3
+    A = lambd * Q
+    Am_of_apps_in_smo = 1 * p1 + 2 * p2 + 3 * p3
+    Av_length_of_queue = 1 * p2 + 2 * p3
+    Av_time_in_smo = Am_of_apps_in_smo / lambd
+    Av_time_in_queue = Av_length_of_queue / lambd
+
+    print('p0: {}'.format(p0))
+    print('p1: {}'.format(p1))
+    print('p2: {}'.format(p2))
+    print('P rejected: {}'.format(p3))
+    print('Theoretical Q: {}'.format(Q))
+    print('Theoretical A: {}'.format(A))
+    print(AvQueueL, Av_length_of_queue)
+    print(AvAmOfApp, Am_of_apps_in_smo)
+    print(AvQueueTime, Av_time_in_queue)
+    print(AvSmoTime, Av_time_in_smo)
 
 
 # 25. Имеется одноканальная СМО с очередью, ограниченной числом мест R = 2.
@@ -136,7 +145,7 @@ if __name__ == '__main__':
     env = simpy.Environment()
     smo = SMO(env, amount_of_channels, apps_flow_rate, max_queue_length, mu1, mu2)
     env.process(run_smo(env, smo))
-    env.run(until=20000)
+    env.run(until=10000)
 
     print('Empiric Probabilities')
     find_empiric_probabilities(done_apps=np.array(smo.applications_done),
@@ -149,9 +158,10 @@ if __name__ == '__main__':
                                max_queue_length=max_queue_length,
                                applications_flow_rate=apps_flow_rate)
 
-    # print('\nTheoretical Probabilities')
-    # find_theoretical_probabilities(max_queue_length=max_queue_length,
-    #                                app_flow_rate=apps_flow_rate,
-    #                                service_flow_rate=service_flow_rate)
+    print('\nTheoretical Probabilities')
+    find_theoretical_probabilities(max_queue_length=max_queue_length,
+                                   lambd=apps_flow_rate,
+                                   mu1=mu1,
+                                   mu2=mu2)
 
     plt.show()
